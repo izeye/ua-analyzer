@@ -39,10 +39,14 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 		}
 		List<Map.Entry<String, Long>> entries = new ArrayList(countByUserAgent.entrySet());
 		Collections.sort(entries, (o1, o2) -> -o1.getValue().compareTo(o2.getValue()));
+		long accumulated = 0;
 		for (Map.Entry<String, Long> entry : entries) {
 			String userAgent = entry.getKey();
 			Long count = entry.getValue();
 			System.out.printf("%d (%.1f%%): %s%n", count, count * 100d / total, userAgent);
+			
+			accumulated += count;
+			System.out.printf("Accumulated: %.1f%%%n", accumulated * 100d / total);
 		}
 	}
 	
