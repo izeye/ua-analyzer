@@ -100,30 +100,37 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 
 	@Override
 	public UserAgent analyze(String userAgentString) {
-		String sanitized = sanitize(userAgentString);
+		try {
+			String sanitized = sanitize(userAgentString);
 
-		Matcher matcher = USER_AGENT_PATTERN.matcher(sanitized);
-		if (!matcher.find()) {
+			Matcher matcher = USER_AGENT_PATTERN.matcher(sanitized);
+			if (!matcher.find()) {
+				return UserAgent.NOT_AVAILABLE;
+			}
+
+			UserAgent userAgent = new UserAgent(userAgentString);
+			userAgent.setMozilla(matcher.group(MOZILLA));
+			String systemAndBrowserInformation = matcher.group(SYSTEM_AND_BROWSER_INFORMATION);
+			userAgent.setSystemAndBrowserInformation(systemAndBrowserInformation);
+			String platform = matcher.group(PLATFORM);
+			userAgent.setPlatform(platform);
+			userAgent.setPlatformDetails(matcher.group(PLATFORM_DETAILS));
+			String extensions = matcher.group(EXTENSIONS);
+			userAgent.setExtensions(extensions);
+			Set<String> systemAndBrowserInformationFields =
+					StringUtils.delimitedListToSet(systemAndBrowserInformation, "[;,]");
+			OsInfo osInfo = resolveOsInfo(systemAndBrowserInformationFields);
+			userAgent.setOsInfo(osInfo);
+			BrowserInfo browserInfo = resolveBrowserInfo(
+					systemAndBrowserInformationFields, platform, extensions);
+			userAgent.setBrowserInfo(browserInfo);
+			return userAgent;
+		}
+		catch (Throwable ex) {
+			ex.printStackTrace();
+			System.out.println("Failed to analyze: " + userAgentString);
 			return UserAgent.NOT_AVAILABLE;
 		}
-
-		UserAgent userAgent = new UserAgent(userAgentString);
-		userAgent.setMozilla(matcher.group(MOZILLA));
-		String systemAndBrowserInformation = matcher.group(SYSTEM_AND_BROWSER_INFORMATION);
-		userAgent.setSystemAndBrowserInformation(systemAndBrowserInformation);
-		String platform = matcher.group(PLATFORM);
-		userAgent.setPlatform(platform);
-		userAgent.setPlatformDetails(matcher.group(PLATFORM_DETAILS));
-		String extensions = matcher.group(EXTENSIONS);
-		userAgent.setExtensions(extensions);
-		Set<String> systemAndBrowserInformationFields =
-				StringUtils.delimitedListToSet(systemAndBrowserInformation, "[;,]");
-		OsInfo osInfo = resolveOsInfo(systemAndBrowserInformationFields);
-		userAgent.setOsInfo(osInfo);
-		BrowserInfo browserInfo = resolveBrowserInfo(
-				systemAndBrowserInformationFields, platform, extensions);
-		userAgent.setBrowserInfo(browserInfo);
-		return userAgent;
 	}
 
 	private String sanitize(String userAgentString) {
