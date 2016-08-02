@@ -63,6 +63,7 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 	private static final String FIREFOX = "Firefox";
 
 	private static final String LINUX = "Linux";
+	private static final String ANDROID = "Android";
 
 	private static final String I_PHONE_OS_NAME_PREFIX = "CPU iPhone OS";
 	private static final int I_PHONE_OS_NAME_PREFIX_LENGTH = I_PHONE_OS_NAME_PREFIX.length();
@@ -148,6 +149,12 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 
 	private OsInfo resolveOsInfo(
 			String originalUserAgent, Set<String> systemAndBrowserInformationFields) {
+		for (String field : systemAndBrowserInformationFields) {
+			if (field.startsWith(ANDROID)) {
+				String osVersion = field.substring(field.indexOf(' ') + 1);
+				return new OsInfo(OsType.ANDROID, osVersion);
+			}
+		}
 		for (String field : systemAndBrowserInformationFields) {
 			if (field.startsWith(WINDOWS)) {
 				String osVersion = field.substring(

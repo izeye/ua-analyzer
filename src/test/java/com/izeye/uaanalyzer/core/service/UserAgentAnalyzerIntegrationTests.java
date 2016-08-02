@@ -23,7 +23,8 @@ public class UserAgentAnalyzerIntegrationTests {
 
 	@Test
 	public void testAnalyzeWithFile() {
-		String filename = "src/test/resources/user_agent_pc.txt";
+//		String filename = "src/test/resources/user_agent_pc.txt";
+		String filename = "src/test/resources/user_agent_mobile.txt";
 //		String filename = "src/test/resources/user_agent_pc.1000.txt";
 //		String filename = "src/test/resources/user_agent_mobile.1000.txt";
 		this.userAgentAnalyzer.analyze(new File(filename));

@@ -5,6 +5,6 @@ package com.izeye.uaanalyzer.core.domain;
  */
 public enum OsType {
 	
-	WINDOWS, MAC_OS_X, LINUX, I_OS, CHROME_OS
+	WINDOWS, MAC_OS_X, LINUX, I_OS, ANDROID, CHROME_OS
 	
 }

@@ -169,6 +169,22 @@ public class UserAgentAnalyzerTests {
 	}
 
 	@Test
+	public void testAnalyzeWithAndroidChrome() {
+		String userAgentString = "Mozilla/5.0 (Linux; Android 6.0.1; SM-N920S Build/MMB29K; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/51.0.2704.81 Mobile Safari/537.36 NAVER(inapp; search; 470; 7.3.2)";
+		UserAgent userAgent = this.userAgentAnalyzer.analyze(userAgentString);
+		System.out.println(userAgent);
+
+		OsInfo osInfo = userAgent.getOsInfo();
+		assertThat(osInfo.getOsType()).isEqualTo(OsType.ANDROID);
+		assertThat(osInfo.getOsVersion()).isEqualTo("6.0.1");
+		assertThat(osInfo.getDescription()).isNull();
+
+		BrowserInfo browserInfo = userAgent.getBrowserInfo();
+		assertThat(browserInfo.getBrowserType()).isEqualTo(BrowserType.CHROME);
+		assertThat(browserInfo.getBrowserVersion()).isEqualTo("51.0.2704.81");
+	}
+
+	@Test
 	public void testAnalyzeWithIncompleteUserAgent() {
 		// NOTE: Although this user agent exists, it will be ignored for the time being.
 		String userAgentString = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Win64; x64; Trident/5.0";
