@@ -306,6 +306,7 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 					"%d (%.1f%%, %.1f%%): %s",
 					count, ratio, accumulatedRatio, userAgent);
 			RAW_REPORT.info(formatted);
+			RAW_REPORT.info(analyze(userAgent).toPrettyString());
 		}
 	}
 
