@@ -34,4 +34,12 @@ public class BrowserInfo implements Comparable<BrowserInfo> {
 		return ObjectUtils.compare(browserVersion, o.browserVersion);
 	}
 
+	public String toPrettyString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(browserType);
+		sb.append(" ");
+		sb.append(browserVersion);
+		return sb.toString();
+	}
+
 }

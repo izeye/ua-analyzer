@@ -60,4 +60,12 @@ public class UserAgent implements Comparable<UserAgent> {
 		return ObjectUtils.compare(raw, o.raw);
 	}
 
+	public String toPrettyString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(osInfo == OsInfo.NOT_AVAILABLE ? "N/A" : osInfo.toPrettyString());
+		sb.append(", ");
+		sb.append(browserInfo == BrowserInfo.NOT_AVAILABLE ? "N/A" : browserInfo.toPrettyString());
+		return sb.toString();
+	}
+
 }

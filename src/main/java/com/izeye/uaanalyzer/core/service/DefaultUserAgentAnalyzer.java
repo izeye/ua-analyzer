@@ -6,6 +6,9 @@ import com.izeye.uaanalyzer.core.domain.OsInfo;
 import com.izeye.uaanalyzer.core.domain.OsType;
 import com.izeye.uaanalyzer.core.domain.UserAgent;
 import com.izeye.uaanalyzer.core.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.stereotype.Service;
 
@@ -28,6 +31,7 @@ import java.util.regex.Pattern;
  * Created by izeye on 16. 7. 22..
  */
 @Service
+@Slf4j
 public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 	
 	private static final String MOZILLA = "mozilla";
@@ -44,6 +48,7 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 	private static final String LIKE_GECKO = " like Gecko";
 	private static final String WINDOWS = "Windows";
 	private static final String MSIE = "MSIE";
+	private static final String EDGE = "Edge";
 
 	private static final String CHROME = "Chrome";
 
@@ -85,6 +90,7 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 		windowsDescriptionByVersion.put("NT 6.1", "Windows 7");
 		windowsDescriptionByVersion.put("NT 6.2", "Windows 8");
 		windowsDescriptionByVersion.put("NT 6.3", "Windows 8.1");
+		windowsDescriptionByVersion.put("NT 10.0", "Windows 10");
 		WINDOWS_DESCRIPTION_BY_VERSION = Collections.unmodifiableMap(windowsDescriptionByVersion);
 	}
 
@@ -98,6 +104,8 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 		BROWSER_INFO_BY_TRIDENT = Collections.unmodifiableMap(browserInfoByTrident);
 	}
 
+	private static final Logger REPORT = LoggerFactory.getLogger("REPORT");
+
 	@Override
 	public UserAgent analyze(String userAgentString) {
 		try {
@@ -105,6 +113,7 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 
 			Matcher matcher = USER_AGENT_PATTERN.matcher(sanitized);
 			if (!matcher.find()) {
+				log.warn("The user agent does not match: {}", sanitized);
 				return UserAgent.NOT_AVAILABLE;
 			}
 
@@ -119,16 +128,15 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 			userAgent.setExtensions(extensions);
 			Set<String> systemAndBrowserInformationFields =
 					StringUtils.delimitedListToSet(systemAndBrowserInformation, "[;,]");
-			OsInfo osInfo = resolveOsInfo(systemAndBrowserInformationFields);
+			OsInfo osInfo = resolveOsInfo(userAgentString, systemAndBrowserInformationFields);
 			userAgent.setOsInfo(osInfo);
 			BrowserInfo browserInfo = resolveBrowserInfo(
-					systemAndBrowserInformationFields, platform, extensions);
+					userAgentString, systemAndBrowserInformationFields, platform, extensions);
 			userAgent.setBrowserInfo(browserInfo);
 			return userAgent;
 		}
 		catch (Throwable ex) {
-			ex.printStackTrace();
-			System.out.println("Failed to analyze: " + userAgentString);
+			log.error("Failed to analyze: " + userAgentString, ex);
 			return UserAgent.NOT_AVAILABLE;
 		}
 	}
@@ -137,7 +145,8 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 		return userAgentString.replace(LIKE_GECKO, "");
 	}
 
-	private OsInfo resolveOsInfo(Set<String> systemAndBrowserInformationFields) {
+	private OsInfo resolveOsInfo(
+			String originalUserAgent, Set<String> systemAndBrowserInformationFields) {
 		for (String field : systemAndBrowserInformationFields) {
 			if (field.startsWith(WINDOWS)) {
 				String osVersion = field.substring(
@@ -162,7 +171,7 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 				return new OsInfo(OsType.CHROME_OS);
 			}
 		}
-		System.out.println("Failed to resolve OS information.");
+		log.warn("Failed to resolve OS information: {}", originalUserAgent);
 		return OsInfo.NOT_AVAILABLE;
 	}
 
@@ -175,7 +184,8 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 	}
 
 	private BrowserInfo resolveBrowserInfo(
-			Set<String> systemAndBrowserInformationFields, String platform, String extensions) {
+			String originalUserAgent, Set<String> systemAndBrowserInformationFields,
+			String platform, String extensions) {
 		for (String field : systemAndBrowserInformationFields) {
 			if (BROWSER_INFO_BY_TRIDENT.containsKey(field)) {
 				return BROWSER_INFO_BY_TRIDENT.get(field);
@@ -189,20 +199,25 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 		if (extensions != null) {
 			String[] extensionFields = extensions.split(" ");
 			if (extensionFields.length > 0) {
+				String extension1 = extensionFields[0];
+				if (extension1.startsWith(FIREFOX)) {
+					return createBrowserInfo(extension1, BrowserType.FIREFOX);
+				}
+				if (extension1.startsWith(IRON)) {
+					return createBrowserInfo(extension1, BrowserType.IRON);
+				}
+				if (platform.startsWith(PRESTO)) {
+					return createBrowserInfo(extension1, BrowserType.OPERA);
+				}
+				for (String extensionField : extensionFields) {
+					if (extensionField.startsWith(EDGE)) {
+						return createBrowserInfo(extensionField, BrowserType.EDGE);
+					}
+				}
 				for (String extensionField : extensionFields) {
 					if (extensionField.startsWith(CHROME)) {
 						return createBrowserInfo(extensionField, BrowserType.CHROME);
 					}
-				}
-				String extension1 = extensionFields[0];
-				if (extension1.startsWith(IRON)) {
-					return createBrowserInfo(extension1, BrowserType.IRON);
-				}
-				if (extension1.startsWith(FIREFOX)) {
-					return createBrowserInfo(extension1, BrowserType.FIREFOX);
-				}
-				if (platform.startsWith(PRESTO)) {
-					return createBrowserInfo(extension1, BrowserType.OPERA);
 				}
 				if (extensionFields.length > 1) {
 					String extension2 = extensionFields[1];
@@ -220,7 +235,7 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 				}
 			}
 		}
-		System.out.println("Failed to resolve browser information.");
+		log.warn("Failed to resolve browser information: {}", originalUserAgent);
 		return BrowserInfo.NOT_AVAILABLE;
 	}
 
@@ -255,9 +270,12 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 			UserAgent userAgent = entry.getKey();
 			Long count = entry.getValue();
 			accumulated += count;
-			System.out.printf(
-					"%d (%.1f%%, %.1f%%): %s, %s, %s%n",
-					count, count * 100d / total, accumulated * 100d / total, userAgent.getOsInfo(), userAgent.getBrowserInfo(), userAgent.getRaw());
+			double ratio = count * 100d / total;
+			double accumulatedRatio = accumulated * 100d / total;
+			String formatted = String.format(
+					"%d (%.1f%%, %.1f%%): %s",
+					count, ratio, accumulatedRatio, userAgent.toPrettyString());
+			REPORT.info(formatted);
 		}
 	}
 	

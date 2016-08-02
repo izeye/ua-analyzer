@@ -5,6 +5,6 @@ package com.izeye.uaanalyzer.core.domain;
  */
 public enum BrowserType {
 	
-	IE, CHROME, SAFARI, IRON, FIREFOX, OPERA
+	IE, EDGE, CHROME, FIREFOX, SAFARI, OPERA, IRON
 	
 }

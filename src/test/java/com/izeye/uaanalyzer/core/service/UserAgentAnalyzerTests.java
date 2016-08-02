@@ -8,12 +8,12 @@ import com.izeye.uaanalyzer.core.domain.UserAgent;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Created by izeye on 16. 7. 22..
+ * Tests for UserAgentAnalyzer.
+ *
+ * @author Johnny Lim
  */
 public class UserAgentAnalyzerTests {
 	
@@ -38,6 +38,22 @@ public class UserAgentAnalyzerTests {
 		BrowserInfo browserInfo = userAgent.getBrowserInfo();
 		assertThat(browserInfo.getBrowserType()).isEqualTo(BrowserType.IE);
 		assertThat(browserInfo.getBrowserVersion()).isEqualTo("11");
+	}
+
+	@Test
+	public void testAnalyzeWithEdge() {
+		String userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2486.0 Safari/537.36 Edge/13.10586";
+		UserAgent userAgent = this.userAgentAnalyzer.analyze(userAgentString);
+		System.out.println(userAgent);
+
+		OsInfo osInfo = userAgent.getOsInfo();
+		assertThat(osInfo.getOsType()).isEqualTo(OsType.WINDOWS);
+		assertThat(osInfo.getOsVersion()).isEqualTo("NT 10.0");
+		assertThat(osInfo.getDescription()).isEqualTo("Windows 10");
+
+		BrowserInfo browserInfo = userAgent.getBrowserInfo();
+		assertThat(browserInfo.getBrowserType()).isEqualTo(BrowserType.EDGE);
+		assertThat(browserInfo.getBrowserVersion()).isEqualTo("13.10586");
 	}
 
 	@Test
@@ -159,14 +175,6 @@ public class UserAgentAnalyzerTests {
 		UserAgent userAgent = this.userAgentAnalyzer.analyze(userAgentString);
 		System.out.println(userAgent);
 		assertThat(userAgent).isEqualTo(UserAgent.NOT_AVAILABLE);
-	}
-	
-	@Test
-	public void testAnalyzeWithFile() {
-		String filename = "src/test/resources/user_agent_pc.txt";
-//		String filename = "src/test/resources/user_agent_pc.1000.txt";
-//		String filename = "src/test/resources/user_agent_mobile.1000.txt";
-		this.userAgentAnalyzer.analyze(new File(filename));
 	}
 	
 }

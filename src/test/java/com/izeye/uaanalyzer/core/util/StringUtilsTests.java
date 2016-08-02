@@ -7,7 +7,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Fill me.
+ * Tests for StringUtils.
  *
  * @author Johnny Lim
  */

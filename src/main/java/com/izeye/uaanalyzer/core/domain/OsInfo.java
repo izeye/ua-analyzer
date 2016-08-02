@@ -42,4 +42,22 @@ public class OsInfo implements Comparable<OsInfo> {
 		return ObjectUtils.compare(description, o.description);
 	}
 
+	public String toPrettyString() {
+		if (osType == null) {
+			return "N/A";
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append(osType);
+		if (osVersion != null) {
+			sb.append(" ");
+			sb.append(osVersion);
+		}
+		if (description != null) {
+			sb.append(" (");
+			sb.append(description);
+			sb.append(")");
+		}
+		return sb.toString();
+	}
+
 }

@@ -19,6 +19,10 @@ public class Application implements CommandLineRunner {
 	
 	@Override
 	public void run(String... args) throws Exception {
+		if (args.length != 1) {
+			System.err.println("Provide a file having user agents.");
+			return;
+		}
 		this.userAgentAnalyzer.analyze(new File(args[0]));
 	}
 
