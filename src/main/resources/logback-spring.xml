@@ -9,7 +9,8 @@
     <property name="DEBUG_LOG_FILE" value="logs/debug.log" />
     <property name="WARN_LOG_FILE" value="logs/warn.log" />
     <property name="ERROR_LOG_FILE" value="logs/error.log" />
-    <property name="REPORT_LOG_FILE" value="logs/report.log" />
+    <property name="RAW_REPORT_LOG_FILE" value="logs/raw_report.log" />
+    <property name="ANALYZED_REPORT_LOG_FILE" value="logs/analyzed_report.log" />
 
     <appender name="DEBUG_LOG_APPENDER"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -63,11 +64,25 @@
         </filter>
     </appender>
 
-    <appender name="REPORT_LOG_APPENDER"
+    <appender name="RAW_REPORT_LOG_APPENDER"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${REPORT_LOG_FILE}</file>
+        <file>${RAW_REPORT_LOG_FILE}</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${REPORT_LOG_FILE}.%d{yyyy-MM-dd}</fileNamePattern>
+            <fileNamePattern>${RAW_REPORT_LOG_FILE}.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%msg%n</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="ANALYZED_REPORT_LOG_APPENDER"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${ANALYZED_REPORT_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${ANALYZED_REPORT_LOG_FILE}.%d{yyyy-MM-dd}</fileNamePattern>
             <maxHistory>10</maxHistory>
         </rollingPolicy>
 
@@ -89,12 +104,20 @@
         <appender-ref ref="ERROR_LOG_APPENDER" />
     </appender>
 
-    <appender name="REPORT_LOG_ASYNC_APPENDER" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="REPORT_LOG_APPENDER" />
+    <appender name="RAW_REPORT_LOG_ASYNC_APPENDER" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="RAW_REPORT_LOG_APPENDER" />
     </appender>
 
-    <logger name="REPORT" level="INFO" additivity="false">
-        <appender-ref ref="REPORT_LOG_ASYNC_APPENDER" />
+    <appender name="ANALYZED_REPORT_LOG_ASYNC_APPENDER" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="ANALYZED_REPORT_LOG_APPENDER" />
+    </appender>
+
+    <logger name="RAW_REPORT" level="INFO" additivity="false">
+        <appender-ref ref="RAW_REPORT_LOG_ASYNC_APPENDER" />
+    </logger>
+
+    <logger name="ANALYZED_REPORT" level="INFO" additivity="false">
+        <appender-ref ref="ANALYZED_REPORT_LOG_ASYNC_APPENDER" />
     </logger>
 
     <root level="INFO">

@@ -104,7 +104,8 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 		BROWSER_INFO_BY_TRIDENT = Collections.unmodifiableMap(browserInfoByTrident);
 	}
 
-	private static final Logger REPORT = LoggerFactory.getLogger("REPORT");
+	private static final Logger RAW_REPORT = LoggerFactory.getLogger("RAW_REPORT");
+	private static final Logger ANALYZED_REPORT = LoggerFactory.getLogger("ANALYZED_REPORT");
 
 	@Override
 	public UserAgent analyze(String userAgentString) {
@@ -248,12 +249,18 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 	public void analyze(File userAgentListFile) {
 		long total = 0;
 		Map<UserAgent, Long> countByUserAgent = new TreeMap<>();
+		Map<String, Long> countByRawUserAgent = new TreeMap<>();
 		try (BufferedReader br = new BufferedReader(new FileReader((userAgentListFile)))) {
 			String line;
 			while ((line = br.readLine()) != null) {
 				UserAgent analyzed = analyze(line);
+
 				Long count = countByUserAgent.get(analyzed);
 				countByUserAgent.put(analyzed, count == null ? 1 : count + 1);
+
+				Long rawCount = countByRawUserAgent.get(line);
+				countByRawUserAgent.put(line, rawCount == null ? 1 : rawCount + 1);
+
 				total++;
 			}
 		}
@@ -263,6 +270,12 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 		catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
+
+		reportRaw(total, countByRawUserAgent);
+		reportAnalyzed(total, countByUserAgent);
+	}
+
+	private void reportAnalyzed(long total, Map<UserAgent, Long> countByUserAgent) {
 		List<Map.Entry<UserAgent, Long>> entries = new ArrayList(countByUserAgent.entrySet());
 		Collections.sort(entries, (o1, o2) -> -o1.getValue().compareTo(o2.getValue()));
 		long accumulated = 0;
@@ -275,8 +288,25 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 			String formatted = String.format(
 					"%d (%.1f%%, %.1f%%): %s",
 					count, ratio, accumulatedRatio, userAgent.toPrettyString());
-			REPORT.info(formatted);
+			ANALYZED_REPORT.info(formatted);
 		}
 	}
-	
+
+	private void reportRaw(long total, Map<String, Long> countByRawUserAgent) {
+		List<Map.Entry<String, Long>> rawEntries = new ArrayList(countByRawUserAgent.entrySet());
+		Collections.sort(rawEntries, (o1, o2) -> -o1.getValue().compareTo(o2.getValue()));
+		long rawAccumulated = 0;
+		for (Map.Entry<String, Long> entry : rawEntries) {
+			String userAgent = entry.getKey();
+			Long count = entry.getValue();
+			rawAccumulated += count;
+			double ratio = count * 100d / total;
+			double accumulatedRatio = rawAccumulated * 100d / total;
+			String formatted = String.format(
+					"%d (%.1f%%, %.1f%%): %s",
+					count, ratio, accumulatedRatio, userAgent);
+			RAW_REPORT.info(formatted);
+		}
+	}
+
 }
