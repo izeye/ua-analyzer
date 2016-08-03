@@ -20,10 +20,12 @@ public class Application implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws Exception {
 		if (args.length != 1) {
-			System.err.println("Provide a file having user agents.");
+			// Run as a web service.
 			return;
 		}
+
 		this.userAgentAnalyzer.analyze(new File(args[0]));
+		System.exit(0);
 	}
 
 	public static void main(String[] args) {

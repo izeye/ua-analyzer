@@ -31,7 +31,7 @@ repositories {
 }
 
 dependencies {
-    compile("org.springframework.boot:spring-boot-starter")
+    compile("org.springframework.boot:spring-boot-starter-web")
     compile("org.apache.commons:commons-lang3:$commonsLangVersion")
 
     provided("org.projectlombok:lombok")
@@ -45,4 +45,8 @@ springBoot {
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.14.1'
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs << '-Xlint:unchecked'
 }

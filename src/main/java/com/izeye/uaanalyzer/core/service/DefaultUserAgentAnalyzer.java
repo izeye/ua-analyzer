@@ -283,7 +283,7 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 	}
 
 	private void reportAnalyzed(long total, Map<UserAgent, Long> countByUserAgent) {
-		List<Map.Entry<UserAgent, Long>> entries = new ArrayList(countByUserAgent.entrySet());
+		List<Map.Entry<UserAgent, Long>> entries = new ArrayList<>(countByUserAgent.entrySet());
 		Collections.sort(entries, (o1, o2) -> -o1.getValue().compareTo(o2.getValue()));
 		long accumulated = 0;
 		for (Map.Entry<UserAgent, Long> entry : entries) {
@@ -300,7 +300,7 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 	}
 
 	private void reportRaw(long total, Map<String, Long> countByRawUserAgent) {
-		List<Map.Entry<String, Long>> rawEntries = new ArrayList(countByRawUserAgent.entrySet());
+		List<Map.Entry<String, Long>> rawEntries = new ArrayList<>(countByRawUserAgent.entrySet());
 		Collections.sort(rawEntries, (o1, o2) -> -o1.getValue().compareTo(o2.getValue()));
 		long rawAccumulated = 0;
 		for (Map.Entry<String, Long> entry : rawEntries) {
