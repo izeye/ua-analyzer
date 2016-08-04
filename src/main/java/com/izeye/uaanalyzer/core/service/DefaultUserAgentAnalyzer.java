@@ -1,16 +1,20 @@
+/*
+ * Copyright 2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.izeye.uaanalyzer.core.service;
-
-import com.izeye.uaanalyzer.core.domain.BrowserInfo;
-import com.izeye.uaanalyzer.core.domain.BrowserType;
-import com.izeye.uaanalyzer.core.domain.OsInfo;
-import com.izeye.uaanalyzer.core.domain.OsType;
-import com.izeye.uaanalyzer.core.domain.UserAgent;
-import com.izeye.uaanalyzer.core.util.StringUtils;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -27,19 +31,33 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.stereotype.Service;
+
+import com.izeye.uaanalyzer.core.domain.BrowserInfo;
+import com.izeye.uaanalyzer.core.domain.BrowserType;
+import com.izeye.uaanalyzer.core.domain.OsInfo;
+import com.izeye.uaanalyzer.core.domain.OsType;
+import com.izeye.uaanalyzer.core.domain.UserAgent;
+import com.izeye.uaanalyzer.core.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * Created by izeye on 16. 7. 22..
+ * Default user agent analyzer.
+ *
+ * @author Johnny Lim
  */
 @Service
 @Slf4j
 public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
-	
+
 	private static final String MOZILLA = "mozilla";
 	private static final String SYSTEM_AND_BROWSER_INFORMATION = "systemAndBrowserInformation";
 	private static final String PLATFORM = "platform";
 	private static final String PLATFORM_DETAILS = "platformDetails";
 	private static final String EXTENSIONS = "extensions";
-	
+
 	private static final String USER_AGENT_REGEX = String.format(
 			"(?<%s>[^ ]+) \\((?<%s>[^\\)]+)\\)( (?<%s>[^ ]+))?( \\((?<%s>[^\\)]+)\\))?( (?<%s>.+))?",
 			MOZILLA, SYSTEM_AND_BROWSER_INFORMATION, PLATFORM, PLATFORM_DETAILS, EXTENSIONS);
@@ -76,6 +94,7 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 	private static final String CHROME_OS = "CrOS";
 
 	private static final Map<String, String> WINDOWS_DESCRIPTION_BY_VERSION;
+
 	static {
 		Map<String, String> windowsDescriptionByVersion = new HashMap<>();
 		windowsDescriptionByVersion.put("CE", "Windows CE");
@@ -96,6 +115,7 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 	}
 
 	private static final Map<String, BrowserInfo> BROWSER_INFO_BY_TRIDENT;
+
 	static {
 		Map<String, BrowserInfo> browserInfoByTrident = new HashMap<>();
 		browserInfoByTrident.put("Trident/4.0", BrowserInfo.IE_8);
@@ -229,22 +249,29 @@ public class DefaultUserAgentAnalyzer implements UserAgentAnalyzer {
 				}
 				if (extensionFields.length > 1) {
 					String extension2 = extensionFields[1];
-					if (extension1.startsWith(SAFARI_VERSION)) {
-						if (extension2.startsWith(SAFARI)) {
-							return createBrowserInfo(extension1, BrowserType.SAFARI);
-						}
-						if (extensionFields.length > 2) {
-							String extension3 = extensionFields[2];
-							if (extension3.startsWith(SAFARI)) {
-								return createBrowserInfo(extension1, BrowserType.SAFARI);
-							}
-						}
+					if (isSafari(extensionFields, extension1, extension2)) {
+						return createBrowserInfo(extension1, BrowserType.SAFARI);
 					}
 				}
 			}
 		}
 		log.warn("Failed to resolve browser information: {}", originalUserAgent);
 		return BrowserInfo.NOT_AVAILABLE;
+	}
+
+	private boolean isSafari(String[] extensionFields, String extension1, String extension2) {
+		if (extension1.startsWith(SAFARI_VERSION)) {
+			if (extension2.startsWith(SAFARI)) {
+				return true;
+			}
+			if (extensionFields.length > 2) {
+				String extension3 = extensionFields[2];
+				if (extension3.startsWith(SAFARI)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private BrowserInfo createBrowserInfo(String browserExtension, BrowserType browserType) {

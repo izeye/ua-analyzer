@@ -19,6 +19,8 @@ apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'spring-boot'
 apply plugin: 'propdeps'
+apply plugin: 'maven-publish'
+apply plugin: 'checkstyle'
 
 sourceCompatibility = 1.8
 
@@ -49,4 +51,37 @@ task wrapper(type: Wrapper) {
 
 tasks.withType(JavaCompile) {
     options.compilerArgs << '-Xlint:unchecked'
+}
+
+task coreJar(type: Jar) {
+    from sourceSets.main.output
+    include 'com/izeye/uaanalyzer/core/**'
+}
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+}
+
+publishing {
+    publications {
+        core(MavenPublication) {
+            groupId 'com.izeye.ua-analyzer'
+            artifactId 'ua-analyzer-core'
+            version '0.1.0.RELEASE'
+
+            artifact coreJar
+
+            artifact sourceJar {
+                classifier 'sources'
+            }
+        }
+    }
+}
+
+checkstyle {
+    toolVersion = '7.0'
+    configProperties = [
+            'headerLocation': 'config/checkstyle/checkstyle-header.txt',
+            'suppressionsLocation': 'config/checkstyle/checkstyle-suppressions.xml'
+    ]
 }
