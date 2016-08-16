@@ -62,12 +62,16 @@ task sourceJar(type: Jar) {
     from sourceSets.main.allJava
 }
 
+ext {
+    artifactVersion = '0.1.0.RELEASE'
+}
+
 publishing {
     publications {
         core(MavenPublication) {
             groupId 'com.izeye.ua-analyzer'
             artifactId 'ua-analyzer-core'
-            version '0.1.0.RELEASE'
+            version artifactVersion
 
             artifact coreJar
 
