@@ -80,6 +80,22 @@ publishing {
             }
         }
     }
+
+    repositories {
+        maven {
+            credentials {
+                username "admin"
+                password "secret123"
+            }
+
+            if (artifactVersion.endsWith("BUILD-SNAPSHOT")) {
+                url "http://localhost:8080/repository/snapshots"
+            }
+            else {
+                url "http://localhost:8080/repository/internal"
+            }
+        }
+    }
 }
 
 checkstyle {
